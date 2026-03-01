@@ -71,3 +71,15 @@ npm run dev:client
   "availableTime": "평일 저녁"
 }
 ```
+
+## 8) 자동 배포 (main)
+- `main` 브랜치에 push(머지 포함)되면 GitHub Actions가 자동 배포를 수행합니다.
+- 워크플로우: `.github/workflows/deploy-main.yml`
+- 배포 경로: `/home/server/home_dir/study_site`
+
+GitHub 저장소 `Settings > Secrets and variables > Actions`에 아래 secrets를 등록해야 합니다.
+
+- `DEPLOY_HOST`: 서버 주소 (예: `116.46.108.155`)
+- `DEPLOY_PORT`: SSH 포트 (예: `4512`)
+- `DEPLOY_USER`: SSH 사용자 (예: `kang`)
+- `DEPLOY_SSH_KEY`: 배포용 OpenSSH 개인키 전체 내용
