@@ -676,7 +676,7 @@ function LandingPage() {
     <div className="page">
       <header className="site-header">
         <div className="container header-inner">
-          <a href="#top" className="logo">{content?.brand || '한글리시'}</a>
+          <a href="#top" className="logo">한글리시</a>
           <nav className="main-nav" style={{ whiteSpace: 'nowrap' }}>
             <h2 className="blind">메인 네비게이션</h2>
 
