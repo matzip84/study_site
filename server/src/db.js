@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise';
+import crypto from 'crypto';
 
 let pool;
 let dbReady = false;
@@ -6,6 +7,39 @@ let memoryConsultations = [];
 let memoryBriefings = [];
 let memoryEntranceTests = [];
 let memorySiteSections = [];
+const DEFAULT_ADMIN_USERNAME = 'hanchang';
+const DEFAULT_ADMIN_PASSWORD = 'gksckdqudtls!@';
+const PASSWORD_ITERATIONS = 120000;
+const PASSWORD_KEYLEN = 64;
+const PASSWORD_DIGEST = 'sha512';
+
+function createPasswordRecord(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto
+    .pbkdf2Sync(password, salt, PASSWORD_ITERATIONS, PASSWORD_KEYLEN, PASSWORD_DIGEST)
+    .toString('hex');
+  return { passwordSalt: salt, passwordHash: hash };
+}
+
+function isPasswordValid(password, passwordSalt, passwordHash) {
+  if (!password || !passwordSalt || !passwordHash) return false;
+
+  const computed = crypto
+    .pbkdf2Sync(password, passwordSalt, PASSWORD_ITERATIONS, PASSWORD_KEYLEN, PASSWORD_DIGEST)
+    .toString('hex');
+
+  const left = Buffer.from(computed, 'hex');
+  const right = Buffer.from(passwordHash, 'hex');
+  if (left.length !== right.length) return false;
+  return crypto.timingSafeEqual(left, right);
+}
+
+const initialAdminPassword = createPasswordRecord(DEFAULT_ADMIN_PASSWORD);
+let memoryAdminCredential = {
+  username: DEFAULT_ADMIN_USERNAME,
+  passwordSalt: initialAdminPassword.passwordSalt,
+  passwordHash: initialAdminPassword.passwordHash
+};
 
 const SAMPLE_CONSULTATIONS = [
   {
@@ -276,6 +310,37 @@ export async function initializeDatabase() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
+  await poolRef.query(`
+    CREATE TABLE IF NOT EXISTS admin_credentials (
+      username VARCHAR(60) NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      password_salt VARCHAR(120) NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (username)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  const [adminRows] = await poolRef.execute(
+    `
+      SELECT username
+      FROM admin_credentials
+      WHERE username = ?
+      LIMIT 1
+    `,
+    [DEFAULT_ADMIN_USERNAME]
+  );
+
+  if (adminRows.length === 0) {
+    const passwordRecord = createPasswordRecord(DEFAULT_ADMIN_PASSWORD);
+    await poolRef.execute(
+      `
+        INSERT INTO admin_credentials (username, password_hash, password_salt)
+        VALUES (?, ?, ?)
+      `,
+      [DEFAULT_ADMIN_USERNAME, passwordRecord.passwordHash, passwordRecord.passwordSalt]
+    );
+  }
+
   const [consultCountRows] = await poolRef.query('SELECT COUNT(*) AS count FROM consultations');
   if (Number(consultCountRows?.[0]?.count || 0) === 0) {
     await poolRef.query(
@@ -500,10 +565,10 @@ export async function updateSiteSectionFromDb(sectionKey, payload) {
   await getPool().execute(
     `
       UPDATE site_sections
-      SET title = ?, subtitle = ?, description = ?, items_json = ?, updated_at = CURRENT_TIMESTAMP
+      SET menu_group = ?, menu_label = ?, title = ?, subtitle = ?, description = ?, items_json = ?, updated_at = CURRENT_TIMESTAMP
       WHERE section_key = ?
     `,
-    [payload.title, payload.subtitle, payload.description, itemsJson, sectionKey]
+    [payload.menuGroup, payload.menuLabel, payload.title, payload.subtitle, payload.description, itemsJson, sectionKey]
   );
 
   const [rows] = await getPool().execute(
@@ -517,6 +582,42 @@ export async function updateSiteSectionFromDb(sectionKey, payload) {
   );
 
   return rows.length > 0 ? normalizeSectionRow(rows[0]) : null;
+}
+
+export async function createSiteSectionFromDb(payload) {
+  const itemsJson = JSON.stringify(Array.isArray(payload.items) ? payload.items : []);
+  await getPool().execute(
+    `
+      INSERT INTO site_sections
+        (section_key, menu_group, menu_label, title, subtitle, description, items_json, image_path)
+      VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
+    `,
+    [payload.sectionKey, payload.menuGroup, payload.menuLabel, payload.title, payload.subtitle, payload.description, itemsJson]
+  );
+
+  const [rows] = await getPool().execute(
+    `
+      SELECT id, section_key, menu_group, menu_label, title, subtitle, description, items_json, image_path, updated_at
+      FROM site_sections
+      WHERE section_key = ?
+      LIMIT 1
+    `,
+    [payload.sectionKey]
+  );
+
+  return rows.length > 0 ? normalizeSectionRow(rows[0]) : null;
+}
+
+export async function deleteSiteSectionFromDb(sectionKey) {
+  const [result] = await getPool().execute(
+    `
+      DELETE FROM site_sections
+      WHERE section_key = ?
+      LIMIT 1
+    `,
+    [sectionKey]
+  );
+  return Number(result.affectedRows || 0) > 0;
 }
 
 export async function updateSiteSectionImageFromDb(sectionKey, imagePath) {
@@ -551,6 +652,8 @@ export function updateMemorySiteSection(sectionKey, payload) {
     section.sectionKey === sectionKey
       ? {
           ...section,
+          menuGroup: payload.menuGroup,
+          menuLabel: payload.menuLabel,
           title: payload.title,
           subtitle: payload.subtitle,
           description: payload.description,
@@ -561,6 +664,29 @@ export function updateMemorySiteSection(sectionKey, payload) {
   );
 
   return memorySiteSections.find((section) => section.sectionKey === sectionKey) || null;
+}
+
+export function createMemorySiteSection(payload) {
+  const row = {
+    id: nextId(memorySiteSections),
+    sectionKey: payload.sectionKey,
+    menuGroup: payload.menuGroup,
+    menuLabel: payload.menuLabel,
+    title: payload.title,
+    subtitle: payload.subtitle,
+    description: payload.description,
+    items: Array.isArray(payload.items) ? payload.items : [],
+    imagePath: null,
+    updatedAt: new Date().toISOString()
+  };
+  memorySiteSections = [...memorySiteSections, row];
+  return row;
+}
+
+export function deleteMemorySiteSection(sectionKey) {
+  const before = memorySiteSections.length;
+  memorySiteSections = memorySiteSections.filter((section) => section.sectionKey !== sectionKey);
+  return memorySiteSections.length < before;
 }
 
 export function updateMemorySiteSectionImage(sectionKey, imagePath) {
@@ -575,4 +701,64 @@ export function updateMemorySiteSectionImage(sectionKey, imagePath) {
   );
 
   return memorySiteSections.find((section) => section.sectionKey === sectionKey) || null;
+}
+
+async function getAdminCredentialFromDb(username) {
+  const [rows] = await getPool().execute(
+    `
+      SELECT username, password_hash AS passwordHash, password_salt AS passwordSalt
+      FROM admin_credentials
+      WHERE username = ?
+      LIMIT 1
+    `,
+    [username]
+  );
+  return rows.length > 0 ? rows[0] : null;
+}
+
+export async function verifyAdminCredential(username, password) {
+  const normalizedUsername = String(username || '').trim();
+  if (!normalizedUsername || !password) return false;
+
+  if (dbReady) {
+    const credential = await getAdminCredentialFromDb(normalizedUsername);
+    if (!credential) return false;
+    return isPasswordValid(password, credential.passwordSalt, credential.passwordHash);
+  }
+
+  if (normalizedUsername !== memoryAdminCredential.username) return false;
+  return isPasswordValid(password, memoryAdminCredential.passwordSalt, memoryAdminCredential.passwordHash);
+}
+
+export async function changeAdminPassword(username, currentPassword, newPassword) {
+  const normalizedUsername = String(username || '').trim();
+  if (!normalizedUsername || !currentPassword || !newPassword) {
+    return { ok: false, message: '필수 항목이 누락되었습니다.' };
+  }
+
+  const valid = await verifyAdminCredential(normalizedUsername, currentPassword);
+  if (!valid) {
+    return { ok: false, message: '현재 비밀번호가 올바르지 않습니다.' };
+  }
+
+  const passwordRecord = createPasswordRecord(newPassword);
+
+  if (dbReady) {
+    await getPool().execute(
+      `
+        UPDATE admin_credentials
+        SET password_hash = ?, password_salt = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE username = ?
+      `,
+      [passwordRecord.passwordHash, passwordRecord.passwordSalt, normalizedUsername]
+    );
+  } else if (normalizedUsername === memoryAdminCredential.username) {
+    memoryAdminCredential = {
+      username: normalizedUsername,
+      passwordHash: passwordRecord.passwordHash,
+      passwordSalt: passwordRecord.passwordSalt
+    };
+  }
+
+  return { ok: true };
 }

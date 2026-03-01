@@ -609,6 +609,12 @@ blockquote {
   background: #f2f6fc;
 }
 
+.danger-btn {
+  background: #fff1f2;
+  color: #991b1b;
+  border-color: #fecdd3;
+}
+
 .section-preview {
   border: 1px dashed var(--line-2);
   border-radius: 10px;
@@ -687,6 +693,37 @@ blockquote {
   text-align: center !important;
   color: var(--muted);
   padding: 1rem !important;
+}
+
+.admin-auth-wrap {
+  display: grid;
+  place-items: center;
+}
+
+.admin-auth-card {
+  width: min(460px, 100%);
+}
+
+.admin-auth-form {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.admin-auth-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-auth-form input {
+  width: 100%;
+  font: inherit;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 0.58rem 0.66rem;
+  background: #fffdf7;
 }
 
 @keyframes fade-up {
