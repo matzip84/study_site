@@ -40,8 +40,26 @@ npm run dev:client
 
 ## 5) 주요 API
 - `GET /api/site-content`: 랜딩 콘텐츠 조회
+- `GET /api/site-sections`: 메뉴별 섹션 콘텐츠 조회
+- `PUT /api/site-sections/:sectionKey`: 메뉴별 섹션 텍스트 수정
+- `POST /api/site-sections/:sectionKey/image`: 메뉴별 섹션 이미지 업로드
+- `DELETE /api/site-sections/:sectionKey/image`: 메뉴별 섹션 이미지 삭제
 - `POST /api/consultations`: 상담 신청 저장
 - `GET /api/consultations`: 최근 상담 신청 50건 조회
+- `POST /api/briefings`: 설명회 신청 저장
+- `GET /api/briefings`: 최근 설명회 신청 50건 조회
+- `POST /api/entrance-tests`: 입학(진단)테스트 신청 저장
+- `GET /api/entrance-tests`: 최근 입학(진단)테스트 신청 50건 조회
+
+## 6) DB 테이블
+- `consultations`: 상담 신청
+- `briefing_applications`: 설명회 신청
+- `entrance_tests`: 입학(진단)테스트 신청
+- `site_sections`: 메뉴별 콘텐츠/이미지 관리
+
+## 7) 업로드 파일
+- 업로드 이미지 경로: `server/uploads`
+- 정적 접근 경로: `/uploads/<filename>`
 
 요청 예시:
 

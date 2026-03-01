@@ -3,6 +3,9 @@ import mysql from 'mysql2/promise';
 let pool;
 let dbReady = false;
 let memoryConsultations = [];
+let memoryBriefings = [];
+let memoryEntranceTests = [];
+let memorySiteSections = [];
 
 const SAMPLE_CONSULTATIONS = [
   {
@@ -24,6 +27,168 @@ const SAMPLE_CONSULTATIONS = [
     availableTime: '주말'
   }
 ];
+
+const SAMPLE_BRIEFINGS = [
+  {
+    parentName: '김영희',
+    studentName: '김하늘',
+    phone: '010-2345-6789',
+    grade: '중2'
+  },
+  {
+    parentName: '이민정',
+    studentName: '이준서',
+    phone: '010-8765-4321',
+    grade: '고1'
+  }
+];
+
+const SAMPLE_ENTRANCE_TESTS = [
+  {
+    name: '최유진',
+    phone: '010-1234-5678',
+    grade: '중3',
+    preferredDate: '2026-03-10'
+  },
+  {
+    name: '한지우',
+    phone: '010-4567-1234',
+    grade: '고2',
+    preferredDate: '2026-03-12'
+  }
+];
+
+export const DEFAULT_SITE_SECTIONS = [
+  {
+    sectionKey: 'yesella-meaning',
+    menuGroup: '예설라',
+    menuLabel: '예설라 의미',
+    title: '예설라 의미',
+    subtitle: '합격과 점수 상승을 만드는 스터디 운영 시스템',
+    description: '예설라는 예측 가능한 학습 설계와 실행력으로 학생의 성장을 만드는 학습 브랜드입니다.',
+    items: []
+  },
+  {
+    sectionKey: 'yesella-goal',
+    menuGroup: '예설라',
+    menuLabel: '예설라 학습목표',
+    title: '예설라 학습목표',
+    subtitle: '측정 가능한 성과 중심 학습',
+    description: '주간 루틴 정착, 실전 점수 향상, 최종 합격까지 관리합니다.',
+    items: ['학습 습관 정착', '실전 점수 향상', '최종 합격 완성']
+  },
+  {
+    sectionKey: 'yesella-diff',
+    menuGroup: '예설라',
+    menuLabel: '예설라만의 차별성',
+    title: '예설라만의 차별성',
+    subtitle: '데이터 + 코칭 + 실행관리',
+    description: '학습량/정답률 데이터 기반으로 개인별 개선 경로를 제공합니다.',
+    items: ['데이터 리포트', '1:1 피드백', '완주관리']
+  },
+  {
+    sectionKey: 'education-course',
+    menuGroup: '학습 안내',
+    menuLabel: '교육 과정',
+    title: '교육 과정',
+    subtitle: '레벨 맞춤형 교육 트랙',
+    description: '입문, 심화, 실전 트랙으로 레벨에 맞춰 학습합니다.',
+    items: ['입문 과정', '심화 과정', '실전 과정']
+  },
+  {
+    sectionKey: 'program-list',
+    menuGroup: '학습 안내',
+    menuLabel: '프로그램',
+    title: '프로그램',
+    subtitle: '목표별 맞춤 과정',
+    description: '학생 목표와 기간에 맞춘 트랙을 운영합니다.',
+    items: []
+  },
+  {
+    sectionKey: 'books',
+    menuGroup: '학습 안내',
+    menuLabel: '교재구성',
+    title: '교재구성',
+    subtitle: '학습 단계별 전용 교재',
+    description: '개념서/유형서/실전서로 구성됩니다.',
+    items: ['개념서', '유형서', '실전서']
+  },
+  {
+    sectionKey: 'notice',
+    menuGroup: '학원 안내',
+    menuLabel: '공지사항',
+    title: '공지사항',
+    subtitle: '최신 학원 소식',
+    description: '모집 일정, 공지, 이벤트 안내를 확인하세요.',
+    items: []
+  },
+  {
+    sectionKey: 'briefing',
+    menuGroup: '학원 안내',
+    menuLabel: '설명회신청',
+    title: '설명회신청',
+    subtitle: '학부모 설명회 신청',
+    description: '학습 운영 방식과 진학 로드맵을 안내드립니다.',
+    items: []
+  },
+  {
+    sectionKey: 'entrance-test',
+    menuGroup: '학원 안내',
+    menuLabel: '입학(진단)테스트',
+    title: '입학(진단)테스트',
+    subtitle: '진단테스트 신청',
+    description: '현재 실력을 진단하고 반배치를 안내합니다.',
+    items: []
+  },
+  {
+    sectionKey: 'direction',
+    menuGroup: '학원 안내',
+    menuLabel: '오시는 길',
+    title: '오시는 길',
+    subtitle: '예설라 학원 위치 안내',
+    description: '서울시 강남구 테헤란로 123, 예설라빌딩 5층',
+    items: []
+  }
+];
+
+function nextId(items) {
+  const maxId = items.reduce((acc, row) => Math.max(acc, Number(row.id) || 0), 0);
+  return maxId + 1;
+}
+
+function safeParseItems(itemsJson) {
+  if (Array.isArray(itemsJson)) return itemsJson;
+  if (Buffer.isBuffer(itemsJson)) {
+    try {
+      const parsed = JSON.parse(itemsJson.toString('utf8'));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  if (!itemsJson) return [];
+  try {
+    const parsed = JSON.parse(itemsJson);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeSectionRow(row) {
+  return {
+    id: row.id,
+    sectionKey: row.section_key,
+    menuGroup: row.menu_group,
+    menuLabel: row.menu_label,
+    title: row.title,
+    subtitle: row.subtitle,
+    description: row.description,
+    items: safeParseItems(row.items_json),
+    imagePath: row.image_path,
+    updatedAt: row.updated_at
+  };
+}
 
 export function getPool() {
   if (!pool) {
@@ -68,10 +233,51 @@ export async function initializeDatabase() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
-  const [countRows] = await poolRef.query('SELECT COUNT(*) AS count FROM consultations');
-  const currentCount = Number(countRows?.[0]?.count || 0);
+  await poolRef.query(`
+    CREATE TABLE IF NOT EXISTS briefing_applications (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      parent_name VARCHAR(60) NOT NULL,
+      student_name VARCHAR(60) NOT NULL,
+      phone VARCHAR(30) NOT NULL,
+      grade VARCHAR(30) NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_created_at (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
 
-  if (currentCount === 0) {
+  await poolRef.query(`
+    CREATE TABLE IF NOT EXISTS entrance_tests (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      name VARCHAR(60) NOT NULL,
+      phone VARCHAR(30) NOT NULL,
+      grade VARCHAR(30) NOT NULL,
+      preferred_date DATE NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_created_at (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await poolRef.query(`
+    CREATE TABLE IF NOT EXISTS site_sections (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      section_key VARCHAR(80) NOT NULL,
+      menu_group VARCHAR(80) NOT NULL,
+      menu_label VARCHAR(80) NOT NULL,
+      title VARCHAR(120) NOT NULL,
+      subtitle VARCHAR(180) NOT NULL,
+      description TEXT NOT NULL,
+      items_json JSON NULL,
+      image_path VARCHAR(255) NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_section_key (section_key)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  const [consultCountRows] = await poolRef.query('SELECT COUNT(*) AS count FROM consultations');
+  if (Number(consultCountRows?.[0]?.count || 0) === 0) {
     await poolRef.query(
       `
         INSERT INTO consultations (name, phone, goal, available_time)
@@ -97,6 +303,71 @@ export async function initializeDatabase() {
     );
   }
 
+  const [briefingCountRows] = await poolRef.query('SELECT COUNT(*) AS count FROM briefing_applications');
+  if (Number(briefingCountRows?.[0]?.count || 0) === 0) {
+    await poolRef.query(
+      `
+        INSERT INTO briefing_applications (parent_name, student_name, phone, grade)
+        VALUES
+          (?, ?, ?, ?),
+          (?, ?, ?, ?)
+      `,
+      [
+        SAMPLE_BRIEFINGS[0].parentName,
+        SAMPLE_BRIEFINGS[0].studentName,
+        SAMPLE_BRIEFINGS[0].phone,
+        SAMPLE_BRIEFINGS[0].grade,
+        SAMPLE_BRIEFINGS[1].parentName,
+        SAMPLE_BRIEFINGS[1].studentName,
+        SAMPLE_BRIEFINGS[1].phone,
+        SAMPLE_BRIEFINGS[1].grade
+      ]
+    );
+  }
+
+  const [testCountRows] = await poolRef.query('SELECT COUNT(*) AS count FROM entrance_tests');
+  if (Number(testCountRows?.[0]?.count || 0) === 0) {
+    await poolRef.query(
+      `
+        INSERT INTO entrance_tests (name, phone, grade, preferred_date)
+        VALUES
+          (?, ?, ?, ?),
+          (?, ?, ?, ?)
+      `,
+      [
+        SAMPLE_ENTRANCE_TESTS[0].name,
+        SAMPLE_ENTRANCE_TESTS[0].phone,
+        SAMPLE_ENTRANCE_TESTS[0].grade,
+        SAMPLE_ENTRANCE_TESTS[0].preferredDate,
+        SAMPLE_ENTRANCE_TESTS[1].name,
+        SAMPLE_ENTRANCE_TESTS[1].phone,
+        SAMPLE_ENTRANCE_TESTS[1].grade,
+        SAMPLE_ENTRANCE_TESTS[1].preferredDate
+      ]
+    );
+  }
+
+  for (const section of DEFAULT_SITE_SECTIONS) {
+    await poolRef.query(
+      `
+        INSERT INTO site_sections
+          (section_key, menu_group, menu_label, title, subtitle, description, items_json, image_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE section_key = section_key
+      `,
+      [
+        section.sectionKey,
+        section.menuGroup,
+        section.menuLabel,
+        section.title,
+        section.subtitle,
+        section.description,
+        JSON.stringify(section.items || []),
+        section.imagePath || null
+      ]
+    );
+  }
+
   dbReady = true;
 }
 
@@ -108,25 +379,61 @@ export function setDbReady(value) {
   dbReady = Boolean(value);
 }
 
-export function seedMemoryConsultationsIfEmpty() {
-  if (memoryConsultations.length > 0) return;
-
+export function seedMemoryDataIfEmpty() {
   const now = Date.now();
-  memoryConsultations = SAMPLE_CONSULTATIONS.map((item, idx) => ({
-    id: idx + 1,
-    name: item.name,
-    phone: item.phone,
-    goal: item.goal,
-    availableTime: item.availableTime,
-    createdAt: new Date(now - idx * 60000).toISOString()
-  }));
+
+  if (memoryConsultations.length === 0) {
+    memoryConsultations = SAMPLE_CONSULTATIONS.map((item, idx) => ({
+      id: idx + 1,
+      name: item.name,
+      phone: item.phone,
+      goal: item.goal,
+      availableTime: item.availableTime,
+      createdAt: new Date(now - idx * 60000).toISOString()
+    }));
+  }
+
+  if (memoryBriefings.length === 0) {
+    memoryBriefings = SAMPLE_BRIEFINGS.map((item, idx) => ({
+      id: idx + 1,
+      parentName: item.parentName,
+      studentName: item.studentName,
+      phone: item.phone,
+      grade: item.grade,
+      createdAt: new Date(now - idx * 60000).toISOString()
+    }));
+  }
+
+  if (memoryEntranceTests.length === 0) {
+    memoryEntranceTests = SAMPLE_ENTRANCE_TESTS.map((item, idx) => ({
+      id: idx + 1,
+      name: item.name,
+      phone: item.phone,
+      grade: item.grade,
+      preferredDate: item.preferredDate,
+      createdAt: new Date(now - idx * 60000).toISOString()
+    }));
+  }
+
+  if (memorySiteSections.length === 0) {
+    memorySiteSections = DEFAULT_SITE_SECTIONS.map((section, idx) => ({
+      id: idx + 1,
+      sectionKey: section.sectionKey,
+      menuGroup: section.menuGroup,
+      menuLabel: section.menuLabel,
+      title: section.title,
+      subtitle: section.subtitle,
+      description: section.description,
+      items: section.items,
+      imagePath: null,
+      updatedAt: new Date(now).toISOString()
+    }));
+  }
 }
 
 export function addMemoryConsultation({ name, phone, goal, availableTime }) {
-  const maxId = memoryConsultations.reduce((acc, row) => Math.max(acc, Number(row.id) || 0), 0);
-  const nextId = maxId + 1;
   const row = {
-    id: nextId,
+    id: nextId(memoryConsultations),
     name,
     phone,
     goal,
@@ -139,4 +446,133 @@ export function addMemoryConsultation({ name, phone, goal, availableTime }) {
 
 export function listMemoryConsultations(limit = 50) {
   return memoryConsultations.slice(0, limit);
+}
+
+export function addMemoryBriefing({ parentName, studentName, phone, grade }) {
+  const row = {
+    id: nextId(memoryBriefings),
+    parentName,
+    studentName,
+    phone,
+    grade,
+    createdAt: new Date().toISOString()
+  };
+  memoryBriefings = [row, ...memoryBriefings];
+  return row;
+}
+
+export function listMemoryBriefings(limit = 50) {
+  return memoryBriefings.slice(0, limit);
+}
+
+export function addMemoryEntranceTest({ name, phone, grade, preferredDate }) {
+  const row = {
+    id: nextId(memoryEntranceTests),
+    name,
+    phone,
+    grade,
+    preferredDate,
+    createdAt: new Date().toISOString()
+  };
+  memoryEntranceTests = [row, ...memoryEntranceTests];
+  return row;
+}
+
+export function listMemoryEntranceTests(limit = 50) {
+  return memoryEntranceTests.slice(0, limit);
+}
+
+export async function listSiteSectionsFromDb() {
+  const [rows] = await getPool().query(
+    `
+      SELECT id, section_key, menu_group, menu_label, title, subtitle, description, items_json, image_path, updated_at
+      FROM site_sections
+      ORDER BY id ASC
+    `
+  );
+
+  return rows.map(normalizeSectionRow);
+}
+
+export async function updateSiteSectionFromDb(sectionKey, payload) {
+  const itemsJson = JSON.stringify(Array.isArray(payload.items) ? payload.items : []);
+
+  await getPool().execute(
+    `
+      UPDATE site_sections
+      SET title = ?, subtitle = ?, description = ?, items_json = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE section_key = ?
+    `,
+    [payload.title, payload.subtitle, payload.description, itemsJson, sectionKey]
+  );
+
+  const [rows] = await getPool().execute(
+    `
+      SELECT id, section_key, menu_group, menu_label, title, subtitle, description, items_json, image_path, updated_at
+      FROM site_sections
+      WHERE section_key = ?
+      LIMIT 1
+    `,
+    [sectionKey]
+  );
+
+  return rows.length > 0 ? normalizeSectionRow(rows[0]) : null;
+}
+
+export async function updateSiteSectionImageFromDb(sectionKey, imagePath) {
+  await getPool().execute(
+    `
+      UPDATE site_sections
+      SET image_path = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE section_key = ?
+    `,
+    [imagePath, sectionKey]
+  );
+
+  const [rows] = await getPool().execute(
+    `
+      SELECT id, section_key, menu_group, menu_label, title, subtitle, description, items_json, image_path, updated_at
+      FROM site_sections
+      WHERE section_key = ?
+      LIMIT 1
+    `,
+    [sectionKey]
+  );
+
+  return rows.length > 0 ? normalizeSectionRow(rows[0]) : null;
+}
+
+export function listMemorySiteSections() {
+  return memorySiteSections;
+}
+
+export function updateMemorySiteSection(sectionKey, payload) {
+  memorySiteSections = memorySiteSections.map((section) =>
+    section.sectionKey === sectionKey
+      ? {
+          ...section,
+          title: payload.title,
+          subtitle: payload.subtitle,
+          description: payload.description,
+          items: Array.isArray(payload.items) ? payload.items : [],
+          updatedAt: new Date().toISOString()
+        }
+      : section
+  );
+
+  return memorySiteSections.find((section) => section.sectionKey === sectionKey) || null;
+}
+
+export function updateMemorySiteSectionImage(sectionKey, imagePath) {
+  memorySiteSections = memorySiteSections.map((section) =>
+    section.sectionKey === sectionKey
+      ? {
+          ...section,
+          imagePath,
+          updatedAt: new Date().toISOString()
+        }
+      : section
+  );
+
+  return memorySiteSections.find((section) => section.sectionKey === sectionKey) || null;
 }

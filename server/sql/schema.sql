@@ -11,3 +11,40 @@ CREATE TABLE IF NOT EXISTS consultations (
   PRIMARY KEY (id),
   INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS briefing_applications (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  parent_name VARCHAR(60) NOT NULL,
+  student_name VARCHAR(60) NOT NULL,
+  phone VARCHAR(30) NOT NULL,
+  grade VARCHAR(30) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS entrance_tests (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(60) NOT NULL,
+  phone VARCHAR(30) NOT NULL,
+  grade VARCHAR(30) NOT NULL,
+  preferred_date DATE NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS site_sections (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  section_key VARCHAR(80) NOT NULL,
+  menu_group VARCHAR(80) NOT NULL,
+  menu_label VARCHAR(80) NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  subtitle VARCHAR(180) NOT NULL,
+  description TEXT NOT NULL,
+  items_json JSON NULL,
+  image_path VARCHAR(255) NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_section_key (section_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -119,6 +119,17 @@ a {
   letter-spacing: 0.01em;
 }
 
+.blind {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -138,6 +149,106 @@ a {
 .nav a:hover {
   background: rgba(29, 79, 145, 0.1);
   transform: translateY(-1px);
+}
+
+.main-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.main-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.main-nav > ul {
+  position: relative;
+  padding-bottom: 0.45rem;
+  margin-bottom: -0.45rem;
+}
+
+.main-nav > ul > li {
+  position: relative;
+}
+
+.main-nav > ul > li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 14px;
+}
+
+.main-nav > ul > li > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  color: #27313b;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.main-nav > ul > li > a:hover {
+  background: rgba(29, 79, 145, 0.1);
+}
+
+.menu_list {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  min-width: 220px;
+  padding: 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
+  z-index: 30;
+}
+
+.menu_list li + li {
+  margin-top: 0.2rem;
+}
+
+.menu_list a {
+  display: block;
+  padding: 0.5rem 0.6rem;
+  border-radius: 9px;
+  text-decoration: none;
+  color: #2d3844;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.menu_list a:hover {
+  background: rgba(29, 79, 145, 0.1);
+}
+
+.main-nav > ul > li:hover > .menu_list,
+.main-nav > ul > li:focus-within > .menu_list {
+  display: block !important;
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  margin-left: 0.25rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(110deg, #1d4f91 0%, #204f88 60%, #15315d 100%);
 }
 
 .section {
@@ -260,6 +371,31 @@ blockquote,
   gap: 1rem;
 }
 
+.info-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.info-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 250, 255, 0.95));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.95rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.info-card h3 {
+  font-size: 1.06rem;
+}
+
+.info-card p {
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .card,
 blockquote {
   padding: 1rem;
@@ -306,10 +442,21 @@ blockquote {
   padding-bottom: 5rem;
 }
 
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 0.95fr;
+  gap: 1rem;
+  align-items: start;
+}
+
 .apply-form {
   padding: 1rem;
   display: grid;
   gap: 0.72rem;
+}
+
+.panel {
+  margin-top: 0.2rem;
 }
 
 .apply-form label {
@@ -344,12 +491,155 @@ blockquote {
   color: var(--brand);
 }
 
+.section-desc {
+  margin-top: 0.45rem;
+  color: var(--muted);
+}
+
+.section-image {
+  margin-top: 0.9rem;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.notice-list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: #fff;
+  overflow: hidden;
+}
+
+.notice-list li {
+  padding: 0.8rem 0.95rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.notice-list li:last-child {
+  border-bottom: 0;
+}
+
+.map-box {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #ffffff, #f3f8ff);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.map-box p + p {
+  margin-top: 0.45rem;
+}
+
 .admin-page .section {
   padding-top: 3.2rem;
 }
 
 .admin-page h1 {
   margin: 0.45rem 0;
+}
+
+.panel-card {
+  margin-bottom: 1rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-editor h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1.12rem;
+}
+
+.admin-editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.9fr;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.admin-editor label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-editor select,
+.admin-editor input,
+.admin-editor textarea {
+  width: 100%;
+  font: inherit;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 0.58rem 0.66rem;
+  background: #fffdf7;
+}
+
+.admin-edit-form {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.admin-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 0.6rem 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: #f2f6fc;
+}
+
+.section-preview {
+  border: 1px dashed var(--line-2);
+  border-radius: 10px;
+  padding: 0.7rem;
+  background: #fafcff;
+}
+
+.section-preview h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.95rem;
+}
+
+.section-preview p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.section-preview img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.admin-section-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-block h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1.1rem;
 }
 
 .admin-meta {
@@ -413,6 +703,9 @@ blockquote {
 @media (max-width: 960px) {
   .hero-grid,
   .apply-grid,
+  .split-grid,
+  .info-grid,
+  .admin-editor-grid,
   .program-cards,
   .review-grid,
   .metric-panel {
@@ -422,6 +715,15 @@ blockquote {
   .nav {
     flex-wrap: wrap;
     justify-content: flex-end;
+  }
+
+  .main-nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .main-nav > ul {
+    width: auto;
   }
 }
 
@@ -448,6 +750,20 @@ blockquote {
   .nav .btn {
     font-size: 0.8rem;
     padding: 0.45rem 0.58rem;
+  }
+
+  .main-nav {
+    gap: 0.2rem;
+  }
+
+  .main-nav > ul > li > a,
+  .admin-link {
+    font-size: 0.79rem;
+    padding: 0.42rem 0.52rem;
+  }
+
+  .menu_list {
+    min-width: 180px;
   }
 
   .section {
