@@ -61,27 +61,27 @@ const SAMPLE_ENTRANCE_TESTS = [
 export const DEFAULT_SITE_SECTIONS = [
   {
     sectionKey: 'yesella-meaning',
-    menuGroup: '예설라',
-    menuLabel: '예설라 의미',
-    title: '예설라 의미',
+    menuGroup: '한글리시',
+    menuLabel: '한글리시 의미',
+    title: '한글리시 의미',
     subtitle: '합격과 점수 상승을 만드는 스터디 운영 시스템',
-    description: '예설라는 예측 가능한 학습 설계와 실행력으로 학생의 성장을 만드는 학습 브랜드입니다.',
+    description: '한글리시는 예측 가능한 학습 설계와 실행력으로 학생의 성장을 만드는 학습 브랜드입니다.',
     items: []
   },
   {
     sectionKey: 'yesella-goal',
-    menuGroup: '예설라',
-    menuLabel: '예설라 학습목표',
-    title: '예설라 학습목표',
+    menuGroup: '한글리시',
+    menuLabel: '한글리시 학습목표',
+    title: '한글리시 학습목표',
     subtitle: '측정 가능한 성과 중심 학습',
     description: '주간 루틴 정착, 실전 점수 향상, 최종 합격까지 관리합니다.',
     items: ['학습 습관 정착', '실전 점수 향상', '최종 합격 완성']
   },
   {
     sectionKey: 'yesella-diff',
-    menuGroup: '예설라',
-    menuLabel: '예설라만의 차별성',
-    title: '예설라만의 차별성',
+    menuGroup: '한글리시',
+    menuLabel: '한글리시만의 차별성',
+    title: '한글리시만의 차별성',
     subtitle: '데이터 + 코칭 + 실행관리',
     description: '학습량/정답률 데이터 기반으로 개인별 개선 경로를 제공합니다.',
     items: ['데이터 리포트', '1:1 피드백', '완주관리']
@@ -145,8 +145,8 @@ export const DEFAULT_SITE_SECTIONS = [
     menuGroup: '학원 안내',
     menuLabel: '오시는 길',
     title: '오시는 길',
-    subtitle: '예설라 학원 위치 안내',
-    description: '서울시 강남구 테헤란로 123, 예설라빌딩 5층',
+    subtitle: '한글리시 학원 위치 안내',
+    description: '서울시 강남구 테헤란로 123, 한글리시빌딩 5층',
     items: []
   }
 ];

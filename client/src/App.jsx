@@ -45,15 +45,15 @@ const initialTestForm = {
 const fallbackSections = {
   'yesella-meaning': {
     sectionKey: 'yesella-meaning',
-    title: '예설라 의미',
+    title: '한글리시 의미',
     subtitle: '합격과 점수 상승을 만드는 스터디 운영 시스템',
-    description: '예설라는 예측 가능한 학습 설계와 실행력으로 학생의 성장을 만드는 학습 브랜드입니다.',
+    description: '한글리시는 예측 가능한 학습 설계와 실행력으로 학생의 성장을 만드는 학습 브랜드입니다.',
     items: [],
     imagePath: null
   },
   'yesella-goal': {
     sectionKey: 'yesella-goal',
-    title: '예설라 학습목표',
+    title: '한글리시 학습목표',
     subtitle: '측정 가능한 성과 중심 학습',
     description: '주간 루틴 정착, 실전 점수 향상, 최종 합격까지 관리합니다.',
     items: ['학습 습관 정착', '실전 점수 향상', '최종 합격 완성'],
@@ -61,7 +61,7 @@ const fallbackSections = {
   },
   'yesella-diff': {
     sectionKey: 'yesella-diff',
-    title: '예설라만의 차별성',
+    title: '한글리시만의 차별성',
     subtitle: '데이터 + 코칭 + 실행관리',
     description: '학습량/정답률 데이터 기반으로 개인별 개선 경로를 제공합니다.',
     items: ['데이터 리포트', '1:1 피드백', '완주관리'],
@@ -118,8 +118,8 @@ const fallbackSections = {
   direction: {
     sectionKey: 'direction',
     title: '오시는 길',
-    subtitle: '예설라 학원 위치 안내',
-    description: '서울시 강남구 테헤란로 123, 예설라빌딩 5층',
+    subtitle: '한글리시 학원 위치 안내',
+    description: '서울시 강남구 테헤란로 123, 한글리시빌딩 5층',
     items: [],
     imagePath: null
   }
@@ -315,7 +315,7 @@ function AdminPage() {
     <div className="page admin-page">
       <header className="site-header">
         <div className="container header-inner">
-          <a href="/" className="logo">예설라 관리자</a>
+          <a href="/" className="logo">한글리시 관리자</a>
           <nav className="nav">
             <a href="/">메인으로</a>
             <button className="btn" type="button" onClick={loadAll}>새로고침</button>
@@ -569,7 +569,7 @@ function LandingPage() {
       .then((data) => setContent(data))
       .catch(() => {
         setContent({
-          brand: '예설라',
+          brand: '한글리시',
           headline: '합격과 점수 상승을 만드는 스터디 운영 시스템',
           stats: []
         });
@@ -676,17 +676,17 @@ function LandingPage() {
     <div className="page">
       <header className="site-header">
         <div className="container header-inner">
-          <a href="#top" className="logo">{content?.brand || '예설라'}</a>
+          <a href="#top" className="logo">{content?.brand || '한글리시'}</a>
           <nav className="main-nav" style={{ whiteSpace: 'nowrap' }}>
             <h2 className="blind">메인 네비게이션</h2>
 
             <ul id="bigmenu_010">
               <li>
-                <a id="sub_header1_Rpt_Big_Hl_title_0" href="#yesella-meaning">예설라</a>
+                <a id="sub_header1_Rpt_Big_Hl_title_0" href="#yesella-meaning">한글리시</a>
                 <ul className="menu_list" style={{ display: 'none' }}>
-                  <li><a id="sub_header1_Rpt_Big_Rpt_Sub_0_Hl_Subtitle_0" href="#yesella-meaning" style={{ cursor: 'pointer' }}>예설라 의미</a></li>
-                  <li><a id="sub_header1_Rpt_Big_Rpt_Sub_0_Hl_Subtitle_1" href="#yesella-goal" style={{ cursor: 'pointer' }}>예설라 학습목표</a></li>
-                  <li><a id="sub_header1_Rpt_Big_Rpt_Sub_0_Hl_Subtitle_2" href="#yesella-diff" style={{ cursor: 'pointer' }}>예설라만의 차별성</a></li>
+                  <li><a id="sub_header1_Rpt_Big_Rpt_Sub_0_Hl_Subtitle_0" href="#yesella-meaning" style={{ cursor: 'pointer' }}>한글리시 의미</a></li>
+                  <li><a id="sub_header1_Rpt_Big_Rpt_Sub_0_Hl_Subtitle_1" href="#yesella-goal" style={{ cursor: 'pointer' }}>한글리시 학습목표</a></li>
+                  <li><a id="sub_header1_Rpt_Big_Rpt_Sub_0_Hl_Subtitle_2" href="#yesella-diff" style={{ cursor: 'pointer' }}>한글리시만의 차별성</a></li>
                 </ul>
               </li>
             </ul>

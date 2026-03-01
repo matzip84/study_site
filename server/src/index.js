@@ -82,7 +82,7 @@ app.get('/api/health', async (_req, res) => {
 
 app.get('/api/site-content', (_req, res) => {
   res.json({
-    brand: '예설라',
+    brand: '한글리시',
     headline: '합격과 점수 상승을 만드는 스터디 운영 시스템',
     stats: [
       { label: '목표 점수 도달 비율', value: '91%' },
