@@ -544,6 +544,52 @@ blockquote {
 
 .admin-page h1 {
   margin: 0.45rem 0;
+  font-size: 1.35rem;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-side-btn {
+  width: 100%;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 0.62rem 0.75rem;
+  background: #f7faff;
+  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-side-btn.active {
+  color: #fff;
+  border-color: #1d4f91;
+  background: linear-gradient(110deg, #1d4f91 0%, #204f88 60%, #15315d 100%);
+}
+
+.admin-content {
+  min-width: 0;
+}
+
+.admin-menu-layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1rem;
+}
+
+.admin-password-card {
+  max-width: 620px;
 }
 
 .panel-card {
@@ -562,7 +608,7 @@ blockquote {
 
 .admin-editor-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr 0.9fr;
+  grid-template-columns: 220px 1fr 280px;
   gap: 0.8rem;
   align-items: start;
 }
@@ -636,6 +682,8 @@ blockquote {
   width: 100%;
   border-radius: 8px;
   border: 1px solid var(--line);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
 }
 
 .admin-section-stack {
@@ -761,6 +809,23 @@ blockquote {
 
   .main-nav > ul {
     width: auto;
+  }
+
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+  }
+
+  .admin-menu-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-editor-grid {
+    grid-template-columns: 1fr;
   }
 }
 

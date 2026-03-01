@@ -266,6 +266,7 @@ function AdminPage() {
   });
   const [passwordStatus, setPasswordStatus] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [adminPage, setAdminPage] = useState('applications');
 
   const totalCount = useMemo(
     () => consultations.length + briefings.length + entranceTests.length,
@@ -617,202 +618,340 @@ function AdminPage() {
       </header>
 
       <main className="section">
-        <div className="container">
-          <p className="eyebrow">Admin</p>
-          <h1>메뉴/신청 통합 관리</h1>
-          <p className="admin-meta">
-            총 {totalCount}건 · 상담 {consultations.length}건 · 설명회 {briefings.length}건 · 진단테스트 {entranceTests.length}건
-          </p>
+        <div className="container admin-shell">
+          <aside className="panel-card admin-sidebar">
+            <p className="eyebrow">Admin</p>
+            <h2>관리자 메뉴</h2>
+            <button
+              type="button"
+              className={`admin-side-btn ${adminPage === 'applications' ? 'active' : ''}`}
+              onClick={() => setAdminPage('applications')}
+            >
+              신청 내역
+            </button>
+            <button
+              type="button"
+              className={`admin-side-btn ${adminPage === 'menus' ? 'active' : ''}`}
+              onClick={() => setAdminPage('menus')}
+            >
+              메뉴 관리
+            </button>
+            <button
+              type="button"
+              className={`admin-side-btn ${adminPage === 'password' ? 'active' : ''}`}
+              onClick={() => setAdminPage('password')}
+            >
+              비밀번호 변경
+            </button>
+          </aside>
 
-          {loading ? <p>불러오는 중...</p> : null}
-          {error ? <p className="admin-error">{error}</p> : null}
+          <section className="admin-content">
+            {loading ? <p>불러오는 중...</p> : null}
+            {error ? <p className="admin-error">{error}</p> : null}
 
-          {!loading && !error ? (
-            <>
-              <section className="admin-editor panel-card">
-                <h2>메뉴 섹션 편집</h2>
-                <div className="admin-editor-grid">
-                  <label>
-                    편집 섹션
-                    <select value={selectedKey} onChange={(e) => setSelectedKey(e.target.value)}>
-                      {sections.map((section) => (
-                        <option key={section.sectionKey} value={section.sectionKey}>
-                          {section.menuGroup} / {section.menuLabel}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+            {!loading && !error && adminPage === 'applications' ? (
+              <>
+                <section className="panel-card">
+                  <h1>신청 내역</h1>
+                  <p className="admin-meta">
+                    총 {totalCount}건 · 상담 {consultations.length}건 · 설명회 {briefings.length}건 · 진단테스트 {entranceTests.length}건
+                  </p>
+                </section>
 
-                  <form className="admin-edit-form" onSubmit={saveSection}>
+                <div className="admin-section-stack">
+                  <section className="admin-block panel-card">
+                    <h2>상담 신청</h2>
+                    <div className="admin-table-wrap">
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>이름</th>
+                            <th>연락처</th>
+                            <th>목표</th>
+                            <th>상담 가능 시간</th>
+                            <th>신청일시</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {consultations.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="admin-empty">신청 데이터가 없습니다.</td>
+                            </tr>
+                          ) : (
+                            consultations.map((item) => (
+                              <tr key={item.id}>
+                                <td>{item.id}</td>
+                                <td>{item.name}</td>
+                                <td>{item.phone}</td>
+                                <td>{item.goal}</td>
+                                <td>{item.availableTime}</td>
+                                <td>{formatDate(item.createdAt)}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <section className="admin-block panel-card">
+                    <h2>설명회 신청</h2>
+                    <div className="admin-table-wrap">
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>학부모</th>
+                            <th>학생</th>
+                            <th>연락처</th>
+                            <th>학년</th>
+                            <th>신청일시</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {briefings.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="admin-empty">신청 데이터가 없습니다.</td>
+                            </tr>
+                          ) : (
+                            briefings.map((item) => (
+                              <tr key={item.id}>
+                                <td>{item.id}</td>
+                                <td>{item.parentName}</td>
+                                <td>{item.studentName}</td>
+                                <td>{item.phone}</td>
+                                <td>{item.grade}</td>
+                                <td>{formatDate(item.createdAt)}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+
+                  <section className="admin-block panel-card">
+                    <h2>입학(진단)테스트 신청</h2>
+                    <div className="admin-table-wrap">
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>학생</th>
+                            <th>연락처</th>
+                            <th>학년</th>
+                            <th>희망 날짜</th>
+                            <th>신청일시</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {entranceTests.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="admin-empty">신청 데이터가 없습니다.</td>
+                            </tr>
+                          ) : (
+                            entranceTests.map((item) => (
+                              <tr key={item.id}>
+                                <td>{item.id}</td>
+                                <td>{item.name}</td>
+                                <td>{item.phone}</td>
+                                <td>{item.grade}</td>
+                                <td>{item.preferredDate ? String(item.preferredDate).slice(0, 10) : '-'}</td>
+                                <td>{formatDate(item.createdAt)}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                </div>
+              </>
+            ) : null}
+
+            {!loading && !error && adminPage === 'menus' ? (
+              <div className="admin-menu-layout">
+                <section className="admin-editor panel-card">
+                  <h1>메뉴 수정/삭제</h1>
+                  <div className="admin-editor-grid">
                     <label>
-                      섹션 키 (고정)
-                      <input value={editor.sectionKey} disabled />
+                      편집 섹션
+                      <select value={selectedKey} onChange={(e) => setSelectedKey(e.target.value)}>
+                        {sections.map((section) => (
+                          <option key={section.sectionKey} value={section.sectionKey}>
+                            {section.menuGroup} / {section.menuLabel}
+                          </option>
+                        ))}
+                      </select>
                     </label>
 
+                    <form className="admin-edit-form" onSubmit={saveSection}>
+                      <label>
+                        섹션 키 (고정)
+                        <input value={editor.sectionKey} disabled />
+                      </label>
+                      <label>
+                        대메뉴명
+                        <input
+                          value={editor.menuGroup}
+                          onChange={(e) => setEditor({ ...editor, menuGroup: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <label>
+                        하위메뉴명
+                        <input
+                          value={editor.menuLabel}
+                          onChange={(e) => setEditor({ ...editor, menuLabel: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <label>
+                        제목
+                        <input
+                          value={editor.title}
+                          onChange={(e) => setEditor({ ...editor, title: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <label>
+                        부제목
+                        <input
+                          value={editor.subtitle}
+                          onChange={(e) => setEditor({ ...editor, subtitle: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <label>
+                        설명
+                        <textarea
+                          rows={4}
+                          value={editor.description}
+                          onChange={(e) => setEditor({ ...editor, description: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <label>
+                        항목 목록 (줄바꿈 구분)
+                        <textarea
+                          rows={4}
+                          value={editor.itemsText}
+                          onChange={(e) => setEditor({ ...editor, itemsText: e.target.value })}
+                        />
+                      </label>
+
+                      <div className="admin-edit-actions">
+                        <button className="btn" type="submit" disabled={editorSaving}>
+                          {editorSaving ? '저장 중...' : '텍스트 저장'}
+                        </button>
+                        <button className="upload-btn danger-btn" type="button" onClick={deleteSection} disabled={deleting}>
+                          {deleting ? '삭제 중...' : '섹션 삭제'}
+                        </button>
+
+                        <label className="upload-btn" htmlFor="section-image-upload">
+                          {uploading ? '업로드 중...' : '사진 업로드'}
+                        </label>
+                        <input
+                          id="section-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={uploadSectionImage}
+                          disabled={uploading}
+                          hidden
+                        />
+                        <button className="upload-btn" type="button" onClick={clearSectionImage} disabled={uploading}>
+                          이미지 삭제
+                        </button>
+                      </div>
+                      <p className="form-message">{editorStatus}</p>
+                    </form>
+
+                    <div className="section-preview">
+                      <h3>현재 이미지</h3>
+                      {selectedSection?.imagePath ? (
+                        <img src={sectionImageUrl(selectedSection.imagePath)} alt={selectedSection.title} />
+                      ) : (
+                        <p>등록된 이미지가 없습니다.</p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <section className="panel-card">
+                  <h1>하위메뉴 추가</h1>
+                  <form className="admin-edit-form" onSubmit={createSection}>
+                    <label>
+                      섹션 키 (영문 소문자/숫자/하이픈)
+                      <input
+                        value={createForm.sectionKey}
+                        onChange={(e) => setCreateForm({ ...createForm, sectionKey: e.target.value })}
+                        required
+                      />
+                    </label>
                     <label>
                       대메뉴명
                       <input
-                        value={editor.menuGroup}
-                        onChange={(e) => setEditor({ ...editor, menuGroup: e.target.value })}
+                        value={createForm.menuGroup}
+                        onChange={(e) => setCreateForm({ ...createForm, menuGroup: e.target.value })}
                         required
                       />
                     </label>
-
                     <label>
                       하위메뉴명
                       <input
-                        value={editor.menuLabel}
-                        onChange={(e) => setEditor({ ...editor, menuLabel: e.target.value })}
+                        value={createForm.menuLabel}
+                        onChange={(e) => setCreateForm({ ...createForm, menuLabel: e.target.value })}
                         required
                       />
                     </label>
-
                     <label>
                       제목
                       <input
-                        value={editor.title}
-                        onChange={(e) => setEditor({ ...editor, title: e.target.value })}
+                        value={createForm.title}
+                        onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
                         required
                       />
                     </label>
-
                     <label>
                       부제목
                       <input
-                        value={editor.subtitle}
-                        onChange={(e) => setEditor({ ...editor, subtitle: e.target.value })}
+                        value={createForm.subtitle}
+                        onChange={(e) => setCreateForm({ ...createForm, subtitle: e.target.value })}
                         required
                       />
                     </label>
-
                     <label>
                       설명
                       <textarea
-                        rows={4}
-                        value={editor.description}
-                        onChange={(e) => setEditor({ ...editor, description: e.target.value })}
+                        rows={3}
+                        value={createForm.description}
+                        onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
                         required
                       />
                     </label>
-
                     <label>
                       항목 목록 (줄바꿈 구분)
                       <textarea
-                        rows={4}
-                        value={editor.itemsText}
-                        onChange={(e) => setEditor({ ...editor, itemsText: e.target.value })}
+                        rows={3}
+                        value={createForm.itemsText}
+                        onChange={(e) => setCreateForm({ ...createForm, itemsText: e.target.value })}
                       />
                     </label>
-
                     <div className="admin-edit-actions">
-                      <button className="btn" type="submit" disabled={editorSaving}>
-                        {editorSaving ? '저장 중...' : '텍스트 저장'}
-                      </button>
-                      <button className="upload-btn danger-btn" type="button" onClick={deleteSection} disabled={deleting}>
-                        {deleting ? '삭제 중...' : '섹션 삭제'}
-                      </button>
-
-                      <label className="upload-btn" htmlFor="section-image-upload">
-                        {uploading ? '업로드 중...' : '사진 업로드'}
-                      </label>
-                      <input
-                        id="section-image-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={uploadSectionImage}
-                        disabled={uploading}
-                        hidden
-                      />
-                      <button className="upload-btn" type="button" onClick={clearSectionImage} disabled={uploading}>
-                        이미지 삭제
+                      <button className="btn" type="submit" disabled={creating}>
+                        {creating ? '생성 중...' : '섹션 추가'}
                       </button>
                     </div>
-
-                    <p className="form-message">{editorStatus}</p>
+                    <p className="form-message">{createStatus}</p>
                   </form>
+                </section>
+              </div>
+            ) : null}
 
-                  <div className="section-preview">
-                    <h3>현재 이미지</h3>
-                    {selectedSection?.imagePath ? (
-                      <img src={sectionImageUrl(selectedSection.imagePath)} alt={selectedSection.title} />
-                    ) : (
-                      <p>등록된 이미지가 없습니다.</p>
-                    )}
-                  </div>
-                </div>
-              </section>
-
-              <section className="panel-card">
-                <h2>메뉴/하위메뉴 추가</h2>
-                <form className="admin-edit-form" onSubmit={createSection}>
-                  <label>
-                    섹션 키 (영문 소문자/숫자/하이픈)
-                    <input
-                      value={createForm.sectionKey}
-                      onChange={(e) => setCreateForm({ ...createForm, sectionKey: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    대메뉴명
-                    <input
-                      value={createForm.menuGroup}
-                      onChange={(e) => setCreateForm({ ...createForm, menuGroup: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    하위메뉴명
-                    <input
-                      value={createForm.menuLabel}
-                      onChange={(e) => setCreateForm({ ...createForm, menuLabel: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    제목
-                    <input
-                      value={createForm.title}
-                      onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    부제목
-                    <input
-                      value={createForm.subtitle}
-                      onChange={(e) => setCreateForm({ ...createForm, subtitle: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    설명
-                    <textarea
-                      rows={3}
-                      value={createForm.description}
-                      onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    항목 목록 (줄바꿈 구분)
-                    <textarea
-                      rows={3}
-                      value={createForm.itemsText}
-                      onChange={(e) => setCreateForm({ ...createForm, itemsText: e.target.value })}
-                    />
-                  </label>
-                  <div className="admin-edit-actions">
-                    <button className="btn" type="submit" disabled={creating}>
-                      {creating ? '생성 중...' : '섹션 추가'}
-                    </button>
-                  </div>
-                  <p className="form-message">{createStatus}</p>
-                </form>
-              </section>
-
-              <section className="panel-card">
-                <h2>비밀번호 변경</h2>
+            {!loading && !error && adminPage === 'password' ? (
+              <section className="panel-card admin-password-card">
+                <h1>비밀번호 변경</h1>
                 <form className="admin-edit-form" onSubmit={changePassword}>
                   <label>
                     현재 비밀번호
@@ -849,118 +988,8 @@ function AdminPage() {
                   <p className="form-message">{passwordStatus}</p>
                 </form>
               </section>
-
-              <div className="admin-section-stack">
-                <section className="admin-block">
-                  <h2>상담 신청</h2>
-                  <div className="admin-table-wrap">
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>이름</th>
-                          <th>연락처</th>
-                          <th>목표</th>
-                          <th>상담 가능 시간</th>
-                          <th>신청일시</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {consultations.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="admin-empty">신청 데이터가 없습니다.</td>
-                          </tr>
-                        ) : (
-                          consultations.map((item) => (
-                            <tr key={item.id}>
-                              <td>{item.id}</td>
-                              <td>{item.name}</td>
-                              <td>{item.phone}</td>
-                              <td>{item.goal}</td>
-                              <td>{item.availableTime}</td>
-                              <td>{formatDate(item.createdAt)}</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-                <section className="admin-block">
-                  <h2>설명회 신청</h2>
-                  <div className="admin-table-wrap">
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>학부모</th>
-                          <th>학생</th>
-                          <th>연락처</th>
-                          <th>학년</th>
-                          <th>신청일시</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {briefings.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="admin-empty">신청 데이터가 없습니다.</td>
-                          </tr>
-                        ) : (
-                          briefings.map((item) => (
-                            <tr key={item.id}>
-                              <td>{item.id}</td>
-                              <td>{item.parentName}</td>
-                              <td>{item.studentName}</td>
-                              <td>{item.phone}</td>
-                              <td>{item.grade}</td>
-                              <td>{formatDate(item.createdAt)}</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-                <section className="admin-block">
-                  <h2>입학(진단)테스트 신청</h2>
-                  <div className="admin-table-wrap">
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>학생</th>
-                          <th>연락처</th>
-                          <th>학년</th>
-                          <th>희망 날짜</th>
-                          <th>신청일시</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {entranceTests.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="admin-empty">신청 데이터가 없습니다.</td>
-                          </tr>
-                        ) : (
-                          entranceTests.map((item) => (
-                            <tr key={item.id}>
-                              <td>{item.id}</td>
-                              <td>{item.name}</td>
-                              <td>{item.phone}</td>
-                              <td>{item.grade}</td>
-                              <td>{item.preferredDate ? String(item.preferredDate).slice(0, 10) : '-'}</td>
-                              <td>{formatDate(item.createdAt)}</td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-              </div>
-            </>
-          ) : null}
+            ) : null}
+          </section>
         </div>
       </main>
     </div>
