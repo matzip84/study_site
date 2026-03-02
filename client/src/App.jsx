@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 const ADMIN_TOKEN_KEY = 'study_site_admin_token';
@@ -246,6 +246,8 @@ function AdminPage() {
   const [editorStatus, setEditorStatus] = useState('');
   const [editorSaving, setEditorSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState(null);
+  const [pendingImagePreview, setPendingImagePreview] = useState('');
   const [creating, setCreating] = useState(false);
   const [createStatus, setCreateStatus] = useState('');
   const [createForm, setCreateForm] = useState({
@@ -258,6 +260,7 @@ function AdminPage() {
     itemsText: ''
   });
   const [deleting, setDeleting] = useState(false);
+  const sectionImageInputRef = useRef(null);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -353,6 +356,11 @@ function AdminPage() {
       itemsText: Array.isArray(selectedSection.items) ? selectedSection.items.join('\n') : ''
     });
     setEditorStatus('');
+    setPendingImageFile(null);
+    setPendingImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return '';
+    });
   }, [selectedSection?.sectionKey]);
 
   const saveSection = async (event) => {
@@ -378,6 +386,7 @@ function AdminPage() {
         .filter(Boolean)
     };
 
+    let textSaved = false;
     try {
       const data = await adminRequestJson(`${API_BASE}/api/site-sections/${selectedKey}`, {
         method: 'PUT',
@@ -386,45 +395,78 @@ function AdminPage() {
       });
 
       setSections((prev) => prev.map((item) => (item.sectionKey === selectedKey ? data.section : item)));
-      setEditorStatus('저장되었습니다.');
+      textSaved = true;
+
+      if (pendingImageFile) {
+        setUploading(true);
+        setEditorStatus('이미지 저장 중입니다...');
+
+        const formData = new FormData();
+        formData.append('image', pendingImageFile);
+
+        const response = await fetch(`${API_BASE}/api/site-sections/${selectedKey}/image`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${getAdminToken()}` },
+          body: formData
+        });
+        const imageData = await response.json();
+        if (!response.ok) throw new Error(imageData.message || '이미지 업로드 실패');
+
+        setSections((prev) => prev.map((item) => (item.sectionKey === selectedKey ? imageData.section : item)));
+        setPendingImageFile(null);
+        setPendingImagePreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return '';
+        });
+        setEditorStatus('텍스트와 이미지가 저장되었습니다.');
+      } else {
+        setEditorStatus('저장되었습니다.');
+      }
     } catch (err) {
-      setEditorStatus(err.message || '저장 중 오류가 발생했습니다.');
+      if (textSaved && pendingImageFile) {
+        setEditorStatus(err.message || '텍스트는 저장되었지만 이미지 저장에 실패했습니다.');
+      } else {
+        setEditorStatus(err.message || '저장 중 오류가 발생했습니다.');
+      }
     } finally {
       setEditorSaving(false);
-    }
-  };
-
-  const uploadSectionImage = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file || !selectedKey) return;
-
-    setUploading(true);
-    setEditorStatus('이미지 업로드 중입니다...');
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch(`${API_BASE}/api/site-sections/${selectedKey}/image`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${getAdminToken()}` },
-        body: formData
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || '이미지 업로드 실패');
-
-      setSections((prev) => prev.map((item) => (item.sectionKey === selectedKey ? data.section : item)));
-      setEditorStatus('이미지가 저장되었습니다.');
-    } catch (err) {
-      setEditorStatus(err.message || '이미지 업로드 중 오류가 발생했습니다.');
-    } finally {
       setUploading(false);
-      event.target.value = '';
     }
   };
+
+  const selectSectionImage = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setPendingImageFile(file);
+    setPendingImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+    setEditorStatus('이미지가 선택되었습니다. 저장 버튼을 누르면 반영됩니다.');
+    event.target.value = '';
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pendingImagePreview) {
+        URL.revokeObjectURL(pendingImagePreview);
+      }
+    };
+  }, [pendingImagePreview]);
 
   const clearSectionImage = async () => {
     if (!selectedKey) return;
+
+    if (pendingImageFile) {
+      setPendingImageFile(null);
+      setPendingImagePreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return '';
+      });
+      setEditorStatus('선택한 이미지가 취소되었습니다.');
+      return;
+    }
 
     setUploading(true);
     setEditorStatus('이미지 삭제 중입니다...');
@@ -440,6 +482,11 @@ function AdminPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const openSectionImagePicker = () => {
+    if (uploading || editorSaving) return;
+    sectionImageInputRef.current?.click();
   };
 
   const createSection = async (event) => {
@@ -843,37 +890,68 @@ function AdminPage() {
 
                       <div className="admin-edit-actions">
                         <button className="btn" type="submit" disabled={editorSaving}>
-                          {editorSaving ? '저장 중...' : '텍스트 저장'}
+                          {editorSaving ? '저장 중...' : '저장'}
                         </button>
                         <button className="upload-btn danger-btn" type="button" onClick={deleteSection} disabled={deleting}>
                           {deleting ? '삭제 중...' : '섹션 삭제'}
                         </button>
 
-                        <label className="upload-btn" htmlFor="section-image-upload">
-                          {uploading ? '업로드 중...' : '사진 업로드'}
-                        </label>
                         <input
                           id="section-image-upload"
                           type="file"
                           accept="image/*"
-                          onChange={uploadSectionImage}
-                          disabled={uploading}
+                          onChange={selectSectionImage}
+                          disabled={uploading || editorSaving}
+                          ref={sectionImageInputRef}
                           hidden
                         />
-                        <button className="upload-btn" type="button" onClick={clearSectionImage} disabled={uploading}>
-                          이미지 삭제
-                        </button>
                       </div>
                       <p className="form-message">{editorStatus}</p>
                     </form>
 
-                    <div className="section-preview">
+                    <div
+                      className={`section-preview clickable ${uploading ? 'disabled' : ''}`}
+                      role="button"
+                      tabIndex={uploading || editorSaving ? -1 : 0}
+                      onClick={openSectionImagePicker}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openSectionImagePicker();
+                        }
+                      }}
+                      aria-disabled={uploading}
+                    >
                       <h3>현재 이미지</h3>
-                      {selectedSection?.imagePath ? (
-                        <img src={sectionImageUrl(selectedSection.imagePath)} alt={selectedSection.title} />
+                      {(pendingImageFile || selectedSection?.imagePath) ? (
+                        <button
+                          className="section-preview-delete"
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            if (!window.confirm('이미지를 삭제하시겠습니까?')) return;
+                            clearSectionImage();
+                          }}
+                          disabled={uploading || editorSaving}
+                          aria-label="이미지 삭제"
+                        >
+                          X
+                        </button>
+                      ) : null}
+                      {pendingImagePreview || selectedSection?.imagePath ? (
+                        <img
+                          src={pendingImagePreview || sectionImageUrl(selectedSection.imagePath)}
+                          alt={selectedSection?.title || '섹션 이미지'}
+                        />
                       ) : (
                         <p>등록된 이미지가 없습니다.</p>
                       )}
+                      <p>
+                        {pendingImageFile
+                          ? '저장 버튼을 누르면 선택한 이미지가 반영됩니다.'
+                          : '클릭해서 이미지 선택'}
+                      </p>
                     </div>
                   </div>
                 </section>

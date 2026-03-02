@@ -694,10 +694,25 @@ blockquote {
 }
 
 .section-preview {
+  position: relative;
   border: 1px dashed var(--line-2);
   border-radius: 10px;
   padding: 0.7rem;
   background: #fafcff;
+}
+
+.section-preview.clickable {
+  cursor: pointer;
+}
+
+.section-preview.clickable:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.section-preview.disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .section-preview h3 {
@@ -716,6 +731,26 @@ blockquote {
   border: 1px solid var(--line);
   aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+.section-preview-delete {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  color: #991b1b;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.section-preview-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .admin-section-stack {
